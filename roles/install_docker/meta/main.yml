@@ -1,0 +1,34 @@
+---
+# meta file for install_docker
+
+galaxy_info:
+  author: Omid Fallah Karimi
+  description: Install Docker CE on Linux systems
+  license: GPL-2.0-or-later
+  min_ansible_version: "2.9"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: Fedora
+      versions:
+        - all
+
+  galaxy_tags:
+    - docker
+    - containers
+    - devops
+    - linux
+
+dependencies: []

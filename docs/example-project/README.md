@@ -19,10 +19,19 @@ my-infrastructure/
 │       └── group_vars/
 │           └── all.yml
 └── playbooks/
-    ├── bootstrap.yml        # Initial server setup
+    ├── bootstrap.yml        # Initial server setup (timezone, packages, optional Docker)
     ├── setup_repos.yml      # Configure repositories
-    └── site.yml             # Main playbook
+    └── site.yml             # Complete setup with Docker
 ```
+
+## Available Roles
+
+| Role | Description |
+|------|-------------|
+| `set_timezone` | Set system timezone |
+| `install_packages` | Install packages (multi-distro) |
+| `add_repository` | Add package repositories |
+| `install_docker` | Install Docker CE with Compose |
 
 ## Usage
 
@@ -33,9 +42,28 @@ my-infrastructure/
 
 2. Run a playbook:
    ```bash
-   # Staging
+   # Bootstrap (timezone + packages)
    ansible-playbook -i inventory/staging/hosts playbooks/bootstrap.yml
 
-   # Production
-   ansible-playbook -i inventory/production/hosts playbooks/bootstrap.yml
+   # Complete setup with Docker
+   ansible-playbook -i inventory/production/hosts playbooks/site.yml
    ```
+
+3. Override variables:
+   ```bash
+   ansible-playbook -i inventory/staging/hosts playbooks/site.yml \
+     -e "timezone=Europe/London" \
+     -e "install_docker=true"
+   ```
+
+## Key Variables
+
+Configure these in `group_vars/all.yml`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `timezone` | `UTC` | System timezone |
+| `base_packages` | `[vim, curl, ...]` | Packages to install |
+| `install_docker` | `true` | Install Docker |
+| `docker_users` | `[ubuntu]` | Users to add to docker group |
+| `docker_install_compose` | `true` | Install Docker Compose |

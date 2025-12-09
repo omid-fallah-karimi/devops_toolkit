@@ -19,3 +19,9 @@ base_packages:
 # Staging-specific settings
 skip_gpg_check: false
 purge_existing_repos: false
+
+# Docker settings
+install_docker: true
+docker_users:
+  - ubuntu
+docker_install_compose: true

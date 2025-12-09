@@ -3,7 +3,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/omid-fallah-karimi/devops_toolkit)
 [![License](https://img.shields.io/badge/License-GPL--2.0--or--later-green)](LICENSE)
 
-A collection of Ansible roles for DevOps automation including timezone configuration, package management, and repository setup.
+A collection of Ansible roles for DevOps automation including timezone configuration, package management, repository setup, and Docker installation.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ ansible-galaxy collection install git+https://github.com/omid-fallah-karimi/devo
 git clone https://github.com/omid-fallah-karimi/devops_toolkit.git
 cd devops_toolkit
 ansible-galaxy collection build
-ansible-galaxy collection install omid_fallah_karimi-devops_toolkit-1.0.0.tar.gz
+ansible-galaxy collection install omid_fallah_karimi-devops_toolkit-1.0.1.tar.gz
 ```
 
 ### Install dependencies
@@ -40,6 +40,7 @@ ansible-galaxy collection install community.general
 | `set_timezone` | Set system timezone on Linux systems |
 | `install_packages` | Install packages on Linux (multi-distro support) |
 | `add_repository` | Add package repositories on Linux systems |
+| `install_docker` | Install Docker CE with optional Compose |
 
 ## Supported Platforms
 
@@ -89,6 +90,18 @@ ansible-galaxy collection install community.general
             filename: "docker-ce"
 ```
 
+### Install Docker
+
+```yaml
+- hosts: servers
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_docker
+      vars:
+        docker_users:
+          - ubuntu
+        docker_install_compose: true
+```
+
 ### Complete Server Setup
 
 ```yaml
@@ -100,27 +113,22 @@ ansible-galaxy collection install community.general
       - vim
       - git
       - curl
-    apt_repositories:
-      - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-        key_url: "https://download.docker.com/linux/ubuntu/gpg"
-        filename: "docker-ce"
 
   roles:
     - role: omid_fallah_karimi.devops_toolkit.set_timezone
-    - role: omid_fallah_karimi.devops_toolkit.add_repository
     - role: omid_fallah_karimi.devops_toolkit.install_packages
+    - role: omid_fallah_karimi.devops_toolkit.install_docker
+      vars:
+        docker_users:
+          - ubuntu
 ```
 
-## Playbooks
+## Example Project
 
-The collection includes ready-to-use playbooks:
-
-- `playbooks/setup_server.yml` - Complete server setup with timezone and packages
-
-```bash
-ansible-playbook -i inventory omid_fallah_karimi.devops_toolkit.setup_server \
-  -e "timezone=Asia/Tehran"
-```
+See `docs/example-project/` for a complete example with best practices:
+- Separate inventory per environment (staging/production)
+- Group variables
+- Ready-to-use playbooks
 
 ## License
 

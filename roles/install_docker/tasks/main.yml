@@ -1,0 +1,146 @@
+---
+# tasks file for install_docker
+
+- name: Gather OS specific variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+    - "default.yml"
+
+# Remove old Docker versions
+- name: Remove old Docker versions
+  ansible.builtin.package:
+    name: "{{ docker_old_packages }}"
+    state: absent
+  become: true
+  when: docker_remove_old | bool
+
+# Install prerequisites
+- name: Install Docker prerequisites (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ docker_prerequisites }}"
+    state: present
+    update_cache: true
+  become: true
+  when: ansible_os_family == 'Debian'
+
+- name: Install Docker prerequisites (RedHat/CentOS)
+  ansible.builtin.yum:
+    name: "{{ docker_prerequisites }}"
+    state: present
+  become: true
+  when: ansible_os_family == 'RedHat'
+
+# Add Docker repository
+- name: Add Docker GPG key (Debian/Ubuntu)
+  ansible.builtin.apt_key:
+    url: "{{ docker_apt_gpg_key }}"
+    state: present
+  become: true
+  when: ansible_os_family == 'Debian'
+
+- name: Add Docker repository (Debian/Ubuntu)
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    state: present
+    filename: docker-ce
+    update_cache: true
+  become: true
+  when: ansible_os_family == 'Debian'
+
+- name: Add Docker repository (RedHat/CentOS)
+  ansible.builtin.yum_repository:
+    name: docker-ce
+    description: Docker CE Stable
+    baseurl: "{{ docker_yum_repository }}"
+    gpgkey: "{{ docker_yum_gpg_key }}"
+    gpgcheck: true
+    enabled: true
+  become: true
+  when: ansible_os_family == 'RedHat'
+
+# Install Docker
+- name: Install Docker packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    update_cache: true
+  become: true
+  when: ansible_os_family == 'Debian'
+  notify: Restart Docker
+
+- name: Install Docker packages (RedHat/CentOS)
+  ansible.builtin.yum:
+    name: "{{ docker_packages }}"
+    state: present
+  become: true
+  when: ansible_os_family == 'RedHat'
+  notify: Restart Docker
+
+# Configure Docker
+- name: Ensure /etc/docker directory exists
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    mode: '0755'
+  become: true
+  when: docker_daemon_config | length > 0
+
+- name: Configure Docker daemon
+  ansible.builtin.copy:
+    content: "{{ docker_daemon_config | to_nice_json }}"
+    dest: /etc/docker/daemon.json
+    mode: '0644'
+  become: true
+  when: docker_daemon_config | length > 0
+  notify: Restart Docker
+
+# Start and enable Docker
+- name: Enable and start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: "{{ docker_service_enabled }}"
+    state: "{{ docker_service_state }}"
+  become: true
+  when: ansible_service_mgr == 'systemd'
+
+# Add users to docker group
+- name: Add users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_users }}"
+  become: true
+  when: docker_users | length > 0
+
+# Install Docker Compose
+- name: Install Docker Compose (standalone)
+  block:
+    - name: Get latest Docker Compose version
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/docker/compose/releases/latest
+        return_content: true
+      register: compose_latest
+      when: docker_compose_version == 'latest'
+
+    - name: Set Docker Compose version
+      ansible.builtin.set_fact:
+        compose_version: "{{ docker_compose_version if docker_compose_version != 'latest' else (compose_latest.json.tag_name | regex_replace('^v', '')) }}"
+
+    - name: Download Docker Compose
+      ansible.builtin.get_url:
+        url: "https://github.com/docker/compose/releases/download/v{{ compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+      become: true
+  when: docker_install_compose | bool
+
+- name: Display Docker installation info
+  ansible.builtin.debug:
+    msg: |
+      ✓ Docker installed successfully
+      ✓ Docker service: {{ docker_service_state }}
+      ✓ Docker users: {{ docker_users | join(', ') if docker_users else 'none' }}
+      ✓ Docker Compose: {{ 'installed' if docker_install_compose else 'not installed' }}

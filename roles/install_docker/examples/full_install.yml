@@ -1,0 +1,27 @@
+---
+# Example: Install Docker with user access and Docker Compose
+
+- name: Install Docker with full configuration
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_docker
+      vars:
+        # Add users to docker group
+        docker_users:
+          - ubuntu
+          - deploy
+
+        # Install Docker Compose standalone
+        docker_install_compose: true
+
+        # Docker daemon configuration
+        docker_daemon_config:
+          storage-driver: overlay2
+          log-driver: json-file
+          log-opts:
+            max-size: "10m"
+            max-file: "3"
+          default-address-pools:
+            - base: "172.80.0.0/16"
+              size: 24

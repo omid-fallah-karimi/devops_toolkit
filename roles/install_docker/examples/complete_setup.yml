@@ -1,0 +1,33 @@
+---
+# Example: Complete server setup with Docker
+
+- name: Complete Docker Server Setup
+  hosts: all
+  become: true
+
+  vars:
+    timezone: "UTC"
+    base_packages:
+      - vim
+      - git
+      - curl
+      - htop
+      - jq
+
+  roles:
+    # Set timezone
+    - role: omid_fallah_karimi.devops_toolkit.set_timezone
+      vars:
+        timezone: "{{ timezone }}"
+
+    # Install base packages
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages: "{{ base_packages }}"
+
+    # Install Docker
+    - role: omid_fallah_karimi.devops_toolkit.install_docker
+      vars:
+        docker_users:
+          - "{{ ansible_user }}"
+        docker_install_compose: true

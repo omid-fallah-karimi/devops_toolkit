@@ -7,27 +7,6 @@
   become: true
   gather_facts: true
 
-  vars:
-    # Docker repository for Debian/Ubuntu
-    apt_repositories:
-      - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-        key_url: "https://download.docker.com/linux/ubuntu/gpg"
-        filename: "docker-ce"
-
-    # Docker repository for RedHat/CentOS
-    yum_repositories:
-      - name: "docker-ce"
-        description: "Docker CE Stable"
-        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
-        gpgkey: "https://download.docker.com/linux/centos/gpg"
-        gpgcheck: true
-
-    # Docker packages
-    docker_packages:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-
   pre_tasks:
     - name: Display setup information
       ansible.builtin.debug:
@@ -46,22 +25,13 @@
       vars:
         packages: "{{ base_packages }}"
 
-    # 3. Add Docker repository
-    - role: omid_fallah_karimi.devops_toolkit.add_repository
-
-    # 4. Install Docker
-    - role: omid_fallah_karimi.devops_toolkit.install_packages
+    # 3. Install Docker
+    - role: omid_fallah_karimi.devops_toolkit.install_docker
       vars:
-        packages: "{{ docker_packages }}"
+        docker_users: "{{ docker_users | default([]) }}"
+        docker_install_compose: "{{ docker_install_compose | default(true) }}"
 
   post_tasks:
-    - name: Enable and start Docker service
-      ansible.builtin.systemd:
-        name: docker
-        enabled: true
-        state: started
-      when: ansible_service_mgr == 'systemd'
-
     - name: Display completion message
       ansible.builtin.debug:
         msg: "✓ Server setup completed for {{ inventory_hostname }}"

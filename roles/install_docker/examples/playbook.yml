@@ -1,0 +1,8 @@
+---
+# Example: Basic Docker installation
+
+- name: Install Docker
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_docker

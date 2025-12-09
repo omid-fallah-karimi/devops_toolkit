@@ -27,6 +27,13 @@
         packages: "{{ base_packages }}"
         package_state: present
 
+    # Install Docker (optional - set install_docker: true in group_vars)
+    - role: omid_fallah_karimi.devops_toolkit.install_docker
+      vars:
+        docker_users: "{{ docker_users | default([]) }}"
+        docker_install_compose: "{{ docker_install_compose | default(false) }}"
+      when: install_docker | default(false) | bool
+
   post_tasks:
     - name: Display completion message
       ansible.builtin.debug:

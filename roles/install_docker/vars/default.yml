@@ -1,0 +1,9 @@
+---
+# Default variables (fallback)
+
+docker_old_packages: []
+docker_prerequisites: []
+docker_apt_gpg_key: ""
+docker_apt_repository: ""
+docker_yum_repository: ""
+docker_yum_gpg_key: ""
