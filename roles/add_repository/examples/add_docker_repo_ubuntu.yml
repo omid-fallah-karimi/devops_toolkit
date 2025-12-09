@@ -1,0 +1,19 @@
+---
+# Example: Add Docker repository on Ubuntu/Debian
+
+- name: Add Docker repository
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+      vars:
+        # Optional: Skip GPG key verification (default: false)
+        # skip_gpg_check: false
+        
+        # Optional: Remove all existing repos first (default: false)
+        # purge_existing_repos: false
+        
+        apt_repositories:
+          - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            key_url: "https://download.docker.com/linux/ubuntu/gpg"
+            filename: "docker-ce"

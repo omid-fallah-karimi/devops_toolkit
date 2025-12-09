@@ -1,0 +1,41 @@
+---
+# Example: Purge all existing repositories and add fresh ones
+# This is useful for fresh VM setup or when you want to completely replace repos
+
+- name: Purge existing repos and add new ones
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+      vars:
+        # Remove all existing repositories first
+        purge_existing_repos: true
+        
+        # Optionally skip GPG check for internal repos
+        # skip_gpg_check: true
+        
+        apt_repositories:
+          # Base Ubuntu repositories
+          - repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} main restricted"
+            filename: "ubuntu-main"
+          - repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates main restricted"
+            filename: "ubuntu-updates"
+          - repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-security main restricted"
+            filename: "ubuntu-security"
+          # Docker repository
+          - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            key_url: "https://download.docker.com/linux/ubuntu/gpg"
+            filename: "docker-ce"
+
+        yum_repositories:
+          # Base CentOS repositories
+          - name: "baseos"
+            description: "CentOS Stream $releasever - BaseOS"
+            baseurl: "http://mirror.centos.org/centos/$releasever-stream/BaseOS/$basearch/os/"
+            gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial"
+            gpgcheck: true
+          - name: "appstream"
+            description: "CentOS Stream $releasever - AppStream"
+            baseurl: "http://mirror.centos.org/centos/$releasever-stream/AppStream/$basearch/os/"
+            gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial"
+            gpgcheck: true

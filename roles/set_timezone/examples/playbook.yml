@@ -1,0 +1,10 @@
+---
+# Example playbook to set timezone using the set_timezone role
+
+- name: Set timezone on all servers
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.set_timezone
+      vars:
+        timezone: "{{ timezone | default('UTC') }}"

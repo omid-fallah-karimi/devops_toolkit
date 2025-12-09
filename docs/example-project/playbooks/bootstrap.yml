@@ -1,0 +1,33 @@
+---
+# Bootstrap playbook - Initial server setup
+# Usage: ansible-playbook -i inventory/production/hosts playbooks/bootstrap.yml
+
+- name: Bootstrap Linux Servers
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Display server information
+      ansible.builtin.debug:
+        msg: |
+          Bootstrapping: {{ inventory_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Target timezone: {{ timezone }}
+
+  roles:
+    # Set system timezone
+    - role: omid_fallah_karimi.devops_toolkit.set_timezone
+      vars:
+        timezone: "{{ timezone }}"
+
+    # Install base packages
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages: "{{ base_packages }}"
+        package_state: present
+
+  post_tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "✓ Bootstrap completed for {{ inventory_hostname }}"

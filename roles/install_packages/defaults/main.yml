@@ -1,0 +1,14 @@
+---
+# defaults file for install_packages
+
+# List of packages to install
+packages: []
+
+# Package state: present, latest, absent
+package_state: present
+
+# Cache valid time in seconds (for apt)
+cache_valid_time: 3600
+
+# Update cache before installing
+update_cache: true

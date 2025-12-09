@@ -1,0 +1,67 @@
+---
+# Main site playbook - Complete server setup
+# Usage: ansible-playbook -i inventory/production/hosts playbooks/site.yml
+
+- name: Complete Server Setup
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # Docker repository for Debian/Ubuntu
+    apt_repositories:
+      - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        key_url: "https://download.docker.com/linux/ubuntu/gpg"
+        filename: "docker-ce"
+
+    # Docker repository for RedHat/CentOS
+    yum_repositories:
+      - name: "docker-ce"
+        description: "Docker CE Stable"
+        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+        gpgkey: "https://download.docker.com/linux/centos/gpg"
+        gpgcheck: true
+
+    # Docker packages
+    docker_packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+
+  pre_tasks:
+    - name: Display setup information
+      ansible.builtin.debug:
+        msg: |
+          Setting up: {{ inventory_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+
+  roles:
+    # 1. Set timezone
+    - role: omid_fallah_karimi.devops_toolkit.set_timezone
+      vars:
+        timezone: "{{ timezone }}"
+
+    # 2. Install base packages
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages: "{{ base_packages }}"
+
+    # 3. Add Docker repository
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+
+    # 4. Install Docker
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages: "{{ docker_packages }}"
+
+  post_tasks:
+    - name: Enable and start Docker service
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+      when: ansible_service_mgr == 'systemd'
+
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "✓ Server setup completed for {{ inventory_hostname }}"

@@ -1,0 +1,21 @@
+---
+# Variables for all staging hosts
+
+# Connection settings
+ansible_user: ubuntu
+ansible_ssh_private_key_file: ~/.ssh/staging_key
+
+# Timezone
+timezone: "Asia/Tehran"
+
+# Base packages
+base_packages:
+  - vim
+  - curl
+  - wget
+  - git
+  - htop
+
+# Staging-specific settings
+skip_gpg_check: false
+purge_existing_repos: false

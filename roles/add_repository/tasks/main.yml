@@ -1,0 +1,225 @@
+---
+# tasks file for add_repository
+
+# =============================================================================
+# Purge existing repositories (optional)
+# =============================================================================
+
+- name: Remove all APT repository files (Debian/Ubuntu)
+  block:
+    - name: Find all APT repository files
+      ansible.builtin.find:
+        paths: /etc/apt/sources.list.d
+        patterns: "*.list,*.sources"
+      register: apt_repo_files
+
+    - name: Remove APT repository files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ apt_repo_files.files }}"
+
+    - name: Backup and clear sources.list
+      ansible.builtin.copy:
+        src: /etc/apt/sources.list
+        dest: /etc/apt/sources.list.backup
+        remote_src: true
+      ignore_errors: true
+  when:
+    - ansible_os_family == 'Debian'
+    - purge_existing_repos | bool
+  become: true
+
+- name: Remove all YUM repository files (RedHat/CentOS)
+  block:
+    - name: Find all YUM repository files
+      ansible.builtin.find:
+        paths: /etc/yum.repos.d
+        patterns: "*.repo"
+      register: yum_repo_files
+
+    - name: Remove YUM repository files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ yum_repo_files.files }}"
+  when:
+    - ansible_os_family == 'RedHat'
+    - purge_existing_repos | bool
+  become: true
+
+- name: Remove all Zypper repositories (SUSE)
+  block:
+    - name: List all Zypper repositories
+      ansible.builtin.command: zypper repos -u
+      register: zypper_repos
+      changed_when: false
+
+    - name: Remove all Zypper repositories
+      ansible.builtin.command: zypper removerepo --all
+      when: zypper_repos.stdout_lines | length > 2
+  when:
+    - ansible_os_family == 'Suse'
+    - purge_existing_repos | bool
+  become: true
+
+- name: Clear Alpine repositories
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/apk/repositories
+  when:
+    - ansible_os_family == 'Alpine'
+    - purge_existing_repos | bool
+  become: true
+
+# =============================================================================
+# Debian/Ubuntu repositories
+# =============================================================================
+
+- name: Add APT signing keys
+  ansible.builtin.apt_key:
+    url: "{{ item.key_url }}"
+    state: present
+  loop: "{{ apt_repositories }}"
+  when:
+    - ansible_os_family == 'Debian'
+    - item.key_url is defined
+    - not (skip_gpg_check | bool)
+  become: true
+
+- name: Add APT signing keys from keyserver
+  ansible.builtin.apt_key:
+    keyserver: "{{ item.keyserver }}"
+    id: "{{ item.key_id }}"
+    state: present
+  loop: "{{ apt_repositories }}"
+  when:
+    - ansible_os_family == 'Debian'
+    - item.keyserver is defined
+    - item.key_id is defined
+    - not (skip_gpg_check | bool)
+  become: true
+
+- name: Add APT repositories (with GPG check)
+  ansible.builtin.apt_repository:
+    repo: "{{ item.repo }}"
+    state: present
+    filename: "{{ item.filename | default(omit) }}"
+    update_cache: true
+  loop: "{{ apt_repositories }}"
+  when:
+    - ansible_os_family == 'Debian'
+    - not (skip_gpg_check | bool)
+  become: true
+
+- name: Add APT repositories (skip GPG check)
+  ansible.builtin.apt_repository:
+    repo: "{{ item.repo | regex_replace('^deb ', 'deb [trusted=yes] ') }}"
+    state: present
+    filename: "{{ item.filename | default(omit) }}"
+    update_cache: true
+  loop: "{{ apt_repositories }}"
+  when:
+    - ansible_os_family == 'Debian'
+    - skip_gpg_check | bool
+  become: true
+
+# =============================================================================
+# RedHat/CentOS/Fedora repositories
+# =============================================================================
+
+- name: Add YUM/DNF repositories
+  ansible.builtin.yum_repository:
+    name: "{{ item.name }}"
+    description: "{{ item.description | default(item.name) }}"
+    baseurl: "{{ item.baseurl | default(omit) }}"
+    mirrorlist: "{{ item.mirrorlist | default(omit) }}"
+    gpgcheck: "{{ false if (skip_gpg_check | bool) else (item.gpgcheck | default(true)) }}"
+    gpgkey: "{{ omit if (skip_gpg_check | bool) else (item.gpgkey | default(omit)) }}"
+    enabled: "{{ item.enabled | default(true) }}"
+    state: present
+  loop: "{{ yum_repositories }}"
+  when: ansible_os_family == 'RedHat'
+  become: true
+
+- name: Import RPM GPG keys
+  ansible.builtin.rpm_key:
+    key: "{{ item.gpgkey }}"
+    state: present
+  loop: "{{ yum_repositories }}"
+  when:
+    - ansible_os_family == 'RedHat'
+    - item.gpgkey is defined
+    - not (skip_gpg_check | bool)
+  become: true
+
+# =============================================================================
+# SUSE repositories
+# =============================================================================
+
+- name: Add Zypper repositories
+  community.general.zypper_repository:
+    name: "{{ item.name }}"
+    repo: "{{ item.repo }}"
+    state: present
+    auto_import_keys: "{{ false if (skip_gpg_check | bool) else (item.auto_import_keys | default(true)) }}"
+    disable_gpg_check: "{{ skip_gpg_check | bool }}"
+    enabled: "{{ item.enabled | default(true) }}"
+  loop: "{{ zypper_repositories }}"
+  when: ansible_os_family == 'Suse'
+  become: true
+
+# =============================================================================
+# Alpine repositories
+# =============================================================================
+
+- name: Add Alpine repositories
+  ansible.builtin.lineinfile:
+    path: /etc/apk/repositories
+    line: "{{ item.repo }}"
+    state: present
+  loop: "{{ alpine_repositories }}"
+  when: ansible_os_family == 'Alpine'
+  become: true
+
+- name: Update Alpine package cache
+  community.general.apk:
+    update_cache: true
+  when:
+    - ansible_os_family == 'Alpine'
+    - alpine_repositories | length > 0
+  become: true
+
+# =============================================================================
+# Archlinux repositories
+# =============================================================================
+
+- name: Configure Pacman repositories
+  ansible.builtin.blockinfile:
+    path: /etc/pacman.conf
+    block: |
+      [{{ item.name }}]
+      Server = {{ item.server }}
+      {% if skip_gpg_check | bool %}
+      SigLevel = Optional TrustAll
+      {% endif %}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ item.name }}"
+    state: present
+  loop: "{{ pacman_repositories }}"
+  when: ansible_os_family == 'Archlinux'
+  become: true
+
+- name: Update Pacman package cache
+  community.general.pacman:
+    update_cache: true
+  when:
+    - ansible_os_family == 'Archlinux'
+    - pacman_repositories | length > 0
+  become: true
+
+- name: Display configured repositories
+  ansible.builtin.debug:
+    msg: |
+      Repository configuration completed for {{ ansible_os_family }}
+      Skip GPG check: {{ skip_gpg_check }}
+      Purged existing repos: {{ purge_existing_repos }}

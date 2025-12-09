@@ -1,0 +1,23 @@
+# Production Inventory
+
+[webservers]
+web1.example.com
+web2.example.com
+web3.example.com
+
+[dbservers]
+db1.example.com
+db2.example.com
+
+[loadbalancers]
+lb1.example.com
+
+[monitoring]
+monitor.example.com
+
+# Group all servers
+[all:children]
+webservers
+dbservers
+loadbalancers
+monitoring

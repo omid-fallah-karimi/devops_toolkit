@@ -1,0 +1,29 @@
+---
+# Setup repositories playbook
+# Usage: ansible-playbook -i inventory/production/hosts playbooks/setup_repos.yml
+
+- name: Configure Package Repositories
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # Docker repository for Debian/Ubuntu
+    apt_repositories:
+      - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        key_url: "https://download.docker.com/linux/ubuntu/gpg"
+        filename: "docker-ce"
+
+    # Docker repository for RedHat/CentOS
+    yum_repositories:
+      - name: "docker-ce"
+        description: "Docker CE Stable"
+        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+        gpgkey: "https://download.docker.com/linux/centos/gpg"
+        gpgcheck: true
+
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+      vars:
+        skip_gpg_check: "{{ skip_gpg_check | default(false) }}"
+        purge_existing_repos: "{{ purge_existing_repos | default(false) }}"

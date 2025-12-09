@@ -1,0 +1,11 @@
+---
+# Variables for webservers group
+
+# Additional packages for web servers
+packages:
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+
+# Web server specific timezone (optional override)
+# timezone: "America/New_York"

@@ -1,0 +1,9 @@
+---
+collections:
+  - name: omid_fallah_karimi.devops_toolkit
+    source: https://github.com/omid-fallah-karimi/devops_toolkit.git
+    type: git
+    version: main
+
+  - name: community.general
+    version: ">=5.0.0"

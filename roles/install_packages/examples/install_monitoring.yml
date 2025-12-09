@@ -1,0 +1,17 @@
+---
+# Example: Install monitoring tools
+
+- name: Install monitoring packages
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages:
+          - htop
+          - iotop
+          - iftop
+          - nmon
+          - sysstat
+          - dstat
+        package_state: present

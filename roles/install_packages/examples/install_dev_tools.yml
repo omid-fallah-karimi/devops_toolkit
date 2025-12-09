@@ -1,0 +1,18 @@
+---
+# Example: Install development tools
+
+- name: Install development packages
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages:
+          - build-essential
+          - gcc
+          - make
+          - python3
+          - python3-pip
+          - nodejs
+          - npm
+        package_state: present

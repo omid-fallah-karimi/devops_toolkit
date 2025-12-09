@@ -1,0 +1,67 @@
+---
+# tasks file for install_packages
+
+- name: Update package cache (Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ cache_valid_time }}"
+  become: true
+  when: ansible_os_family == 'Debian'
+
+- name: Update package cache (RedHat/CentOS/Fedora)
+  ansible.builtin.yum:
+    update_cache: true
+  become: true
+  when: ansible_os_family == 'RedHat'
+
+- name: Update package cache (Archlinux)
+  community.general.pacman:
+    update_cache: true
+  become: true
+  when: ansible_os_family == 'Archlinux'
+
+- name: Update package cache (Alpine)
+  community.general.apk:
+    update_cache: true
+  become: true
+  when: ansible_os_family == 'Alpine'
+
+- name: Install packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: "{{ package_state }}"
+  become: true
+  when: ansible_os_family == 'Debian'
+
+- name: Install packages (RedHat/CentOS/Fedora)
+  ansible.builtin.yum:
+    name: "{{ packages }}"
+    state: "{{ package_state }}"
+  become: true
+  when: ansible_os_family == 'RedHat'
+
+- name: Install packages (Archlinux)
+  community.general.pacman:
+    name: "{{ packages }}"
+    state: "{{ package_state }}"
+  become: true
+  when: ansible_os_family == 'Archlinux'
+
+- name: Install packages (Alpine)
+  community.general.apk:
+    name: "{{ packages }}"
+    state: "{{ package_state }}"
+  become: true
+  when: ansible_os_family == 'Alpine'
+
+- name: Install packages (SUSE)
+  community.general.zypper:
+    name: "{{ packages }}"
+    state: "{{ package_state }}"
+  become: true
+  when: ansible_os_family == 'Suse'
+
+- name: Display installed packages
+  ansible.builtin.debug:
+    msg: "Packages {{ package_state }}: {{ packages | join(', ') }}"
+  when: packages | length > 0

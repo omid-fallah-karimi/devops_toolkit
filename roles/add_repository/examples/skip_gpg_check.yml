@@ -1,0 +1,24 @@
+---
+# Example: Skip GPG key verification (use with caution!)
+# This is useful for internal/private repositories or testing environments
+
+- name: Add repository without GPG verification
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+      vars:
+        # Skip GPG key verification
+        skip_gpg_check: true
+        
+        apt_repositories:
+          - repo: "deb http://internal-mirror.example.com/ubuntu focal main"
+            filename: "internal-mirror"
+          - repo: "deb http://private-repo.example.com/packages stable main"
+            filename: "private-repo"
+
+        yum_repositories:
+          - name: "internal-repo"
+            description: "Internal Repository"
+            baseurl: "http://internal-repo.example.com/centos/$releasever/$basearch/"
+            enabled: true

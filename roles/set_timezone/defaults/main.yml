@@ -1,0 +1,6 @@
+---
+# defaults file for set_timezone
+
+# The timezone to set on the system
+# Examples: UTC, America/New_York, Europe/London, Asia/Tokyo, Asia/Tehran
+timezone: "UTC"

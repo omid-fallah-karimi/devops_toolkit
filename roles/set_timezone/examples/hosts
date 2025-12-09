@@ -1,0 +1,27 @@
+# Example inventory for set_timezone role
+
+[servers]
+server1.example.com
+server2.example.com
+server3.example.com
+
+[servers:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+# Timezone configuration
+timezone=Asia/Tehran
+
+# Group-specific timezone overrides
+[webservers]
+web1.example.com
+web2.example.com
+
+[webservers:vars]
+timezone=America/New_York
+
+[dbservers]
+db1.example.com
+
+[dbservers:vars]
+timezone=Europe/London

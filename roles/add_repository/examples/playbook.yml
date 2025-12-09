@@ -1,0 +1,48 @@
+---
+# Example playbook to add repositories and install packages
+
+- name: Add repositories and install Docker
+  hosts: all
+  become: true
+  
+  vars:
+    # Global options
+    skip_gpg_check: false           # Set to true to skip GPG verification
+    purge_existing_repos: false     # Set to true to remove all existing repos first
+
+    # APT repositories for Debian/Ubuntu
+    apt_repositories:
+      - repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        key_url: "https://download.docker.com/linux/ubuntu/gpg"
+        filename: "docker-ce"
+
+    # YUM repositories for RedHat/CentOS
+    yum_repositories:
+      - name: "docker-ce"
+        description: "Docker CE Stable"
+        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+        gpgkey: "https://download.docker.com/linux/centos/gpg"
+        gpgcheck: true
+
+    # Packages to install after adding repository
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+
+  roles:
+    # Set timezone
+    - role: omid_fallah_karimi.devops_toolkit.set_timezone
+      vars:
+        timezone: "UTC"
+
+    # Add repositories
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+      vars:
+        skip_gpg_check: "{{ skip_gpg_check }}"
+        purge_existing_repos: "{{ purge_existing_repos }}"
+
+    # Install packages
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages: "{{ packages }}"

@@ -1,0 +1,18 @@
+---
+# Example: Set multiple timezones based on server location
+
+- name: Set timezone based on server region
+  hosts: all
+  become: true
+
+  vars:
+    region_timezones:
+      us_east: "America/New_York"
+      us_west: "America/Los_Angeles"
+      europe: "Europe/London"
+      asia: "Asia/Tehran"
+
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.set_timezone
+      vars:
+        timezone: "{{ region_timezones[server_region] | default('UTC') }}"

@@ -1,0 +1,14 @@
+---
+# Example: Remove unwanted packages
+
+- name: Remove packages
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages:
+          - apache2
+          - httpd
+          - telnet
+        package_state: absent

@@ -1,0 +1,22 @@
+---
+# Example: Add Docker repository on CentOS/RHEL
+
+- name: Add Docker repository
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.add_repository
+      vars:
+        # Optional: Skip GPG key verification (default: false)
+        # skip_gpg_check: false
+        
+        # Optional: Remove all existing repos first (default: false)
+        # purge_existing_repos: false
+        
+        yum_repositories:
+          - name: "docker-ce"
+            description: "Docker CE Stable - $basearch"
+            baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+            gpgkey: "https://download.docker.com/linux/centos/gpg"
+            gpgcheck: true
+            enabled: true

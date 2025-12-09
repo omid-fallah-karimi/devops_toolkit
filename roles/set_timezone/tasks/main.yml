@@ -1,0 +1,19 @@
+---
+# tasks file for set_timezone
+
+- name: Ensure timezone is set
+  community.general.timezone:
+    name: "{{ timezone }}"
+  become: true
+  when: ansible_os_family in ['Debian', 'RedHat', 'Suse', 'Archlinux', 'Alpine']
+
+- name: Verify timezone is set correctly
+  ansible.builtin.command: timedatectl show --property=Timezone --value
+  register: current_timezone
+  changed_when: false
+  when: ansible_service_mgr == 'systemd'
+
+- name: Display current timezone
+  ansible.builtin.debug:
+    msg: "Current timezone is set to: {{ current_timezone.stdout | default(timezone) }}"
+  when: current_timezone is defined and current_timezone.stdout is defined

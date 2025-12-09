@@ -1,0 +1,18 @@
+---
+# Example playbook to install packages using the install_packages role
+
+- name: Install packages on all servers
+  hosts: all
+  become: true
+  roles:
+    - role: omid_fallah_karimi.devops_toolkit.install_packages
+      vars:
+        packages:
+          - vim
+          - git
+          - curl
+          - wget
+          - htop
+          - net-tools
+          - unzip
+        package_state: present

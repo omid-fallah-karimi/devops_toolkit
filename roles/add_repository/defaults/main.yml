@@ -1,0 +1,55 @@
+---
+# defaults file for add_repository
+
+# Skip GPG key verification (use with caution!)
+skip_gpg_check: false
+
+# Remove all existing repositories before adding new ones
+purge_existing_repos: false
+
+# APT repositories (Debian/Ubuntu)
+# Example:
+# apt_repositories:
+#   - repo: "deb https://download.docker.com/linux/ubuntu focal stable"
+#     key_url: "https://download.docker.com/linux/ubuntu/gpg"
+#     filename: "docker"
+#   - repo: "deb http://ppa.launchpad.net/ansible/ansible/ubuntu focal main"
+#     keyserver: "keyserver.ubuntu.com"
+#     key_id: "93C4A3FD7BB9C367"
+apt_repositories: []
+
+# YUM/DNF repositories (RedHat/CentOS/Fedora)
+# Example:
+# yum_repositories:
+#   - name: "docker-ce"
+#     description: "Docker CE Stable"
+#     baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+#     gpgkey: "https://download.docker.com/linux/centos/gpg"
+#     gpgcheck: true
+#   - name: "epel"
+#     description: "Extra Packages for Enterprise Linux"
+#     mirrorlist: "https://mirrors.fedoraproject.org/mirrorlist?repo=epel-$releasever&arch=$basearch"
+#     gpgkey: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-$releasever"
+yum_repositories: []
+
+# Zypper repositories (SUSE)
+# Example:
+# zypper_repositories:
+#   - name: "docker"
+#     repo: "https://download.docker.com/linux/sles/$releasever/$basearch/stable"
+#     auto_import_keys: true
+zypper_repositories: []
+
+# Alpine repositories
+# Example:
+# alpine_repositories:
+#   - repo: "http://dl-cdn.alpinelinux.org/alpine/edge/community"
+#   - repo: "http://dl-cdn.alpinelinux.org/alpine/edge/testing"
+alpine_repositories: []
+
+# Pacman repositories (Archlinux)
+# Example:
+# pacman_repositories:
+#   - name: "archlinuxcn"
+#     server: "https://repo.archlinuxcn.org/$arch"
+pacman_repositories: []

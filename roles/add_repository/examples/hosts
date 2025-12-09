@@ -1,0 +1,12 @@
+# Example inventory for add_repository role
+
+[ubuntu_servers]
+ubuntu1.example.com
+ubuntu2.example.com
+
+[centos_servers]
+centos1.example.com
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/id_rsa
